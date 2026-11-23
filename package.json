@@ -1,0 +1,4 @@
+{"name":"amr-file-manager","version":"1.0.0","description":"AMR FILE MANAGER - smart file manager (PWA + Capacitor Android)","private":true,
+"scripts":{"build":"node scripts/build.js","start":"node scripts/serve.js","test":"node scripts/check.js","cap:sync":"npm run build && npx cap sync android","android:open":"npx cap open android","android:apk":"npm run cap:sync && cd android && gradle assembleDebug"},
+"dependencies":{"@capacitor/android":"^6.2.0","@capacitor/core":"^6.2.0"},
+"devDependencies":{"@capacitor/cli":"^6.2.0"}}
