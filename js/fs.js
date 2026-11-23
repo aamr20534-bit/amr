@@ -7,7 +7,7 @@ const unb64=(s,t)=>{const b=atob(s),a=new Uint8Array(b.length);for(let i=0;i<b.l
 const tick=()=>new Promise(r=>setTimeout(r,0));
 const MEDIA={id:'media://all',tree:'',name:'MediaStore',ok:true,virtual:true};
 
-const Native=()=>{const P=Capacitor.registerPlugin('AmrFS');let n=0,w=0;
+const Native=()=>{const P=Capacitor.registerPlugin?Capacitor.registerPlugin('AmrFS'):(Capacitor.Plugins&&Capacitor.Plugins.AmrFS);if(!P)throw new Error('AmrFS plugin not found');let n=0,w=0;
 const L={
  async scan(r,start,cb){const sid='s'+(++n),h=await P.addListener('scan',e=>e.sid===sid&&cb(e.items));try{await P.fScan({path:start,sid})}finally{h.remove()}},
  async list(r,id){return(await P.fList({path:id})).items},
@@ -94,8 +94,10 @@ const Device=()=>{const BASE='file:///storage/emulated/0/',D={err:null};
   async getBlob(n){const b=await xhr(U(n.id),'blob');return new Blob([b],{type:n.mime})},
   async url(n){return U(n.id)},async open(){throw new Error('read-only')},async share(){throw new Error('read-only')}});return D};
 
-const base=isNative?Native():Web(),dev=Device(),isDev=x=>x==='dev'||String(x).startsWith('dev/'),isLoc=x=>isNative&&String(x).startsWith('/'),pick=x=>isDev(x)?dev:isLoc(x)?base.local:base;
+let nativeErr=null;const mkBase=()=>{if(isNative){try{return Native()}catch(e){nativeErr=String(e&&e.message||e)}}return Web()};
+const base=mkBase(),dev=Device(),isDev=x=>x==='dev'||String(x).startsWith('dev/'),isLoc=x=>isNative&&String(x).startsWith('/'),pick=x=>isDev(x)?dev:isLoc(x)?base.local:base;
 const rt=k=>(...a)=>pick(a[0]&&a[0].id!==undefined?a[0].id:a[0])[k](...a);
 const FS=Object.assign({},base,{
  async roots(){const o=await base.roots();if(!isNative&&/Android|file:/.test(navigator.userAgent+location.protocol)&&await dev.probe())o.push({id:'dev',name:'Device',ok:true,ro:true,dev:true});FS.devErr=dev.err;return o},
  scan:(r,s,cb)=>pick(r.id).scan(r,s,cb),list:(r,id)=>pick(id).list(r,id),getBlob:rt('getBlob'),url:rt('url'),open:rt('open'),share:rt('share'),trashDir:rt('trashDir'),mkdir:rt('mkdir'),copy:rt('copy'),rename:rt('rename'),move:rt('move'),del:rt('del'),write:rt('write'),devErr:null});
+FS.initErr=nativeErr;

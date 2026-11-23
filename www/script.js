@@ -322,7 +322,7 @@ async function init(){const t0=Date.now();
  try{S.trash=await DB.all('trash')}catch{}
  try{S.roots=await FS.roots()}catch(e){S.roots=[]}for(const r of S.roots){if(r.priv)r.name='AMR Storage';if(r.local)r.name=t('internal');upsertRoot(r);try{const c=await DB.get('index',r.id);if(c){S.cache[r.id]=1;for(const i of c)upsert(mk(i,r,false))}}catch{}}
  S.sec=S.set.sec||'home';S.cur=S.set.cur&&getN(S.set.cur)?S.set.cur:null;if(S.sec==='trash'||S.sec==='settings')S.sec='home';
- render();firstRun();const sp=$('#splash');setTimeout(()=>{sp.classList.add('out');setTimeout(()=>sp.remove(),500)},Math.max(0,900-(Date.now()-t0)));
+ render();if(FS.initErr)toast('Native: '+FS.initErr,'err');firstRun();const sp=$('#splash');setTimeout(()=>{sp.classList.add('out');setTimeout(()=>sp.remove(),500)},Math.max(0,900-(Date.now()-t0)));
  refreshStorage();autoPurge();for(const r of S.roots.filter(r=>r.ok))reindex(r.id);try{FS.watch&&await FS.watch(S.roots.filter(r=>r.ok),debRescan)}catch{}
  setInterval(()=>{if(!document.hidden&&!S.busy)reindexAll()},45000);setInterval(pollHot,isNative||S.roots.some(r=>r.dev)?4000:10000);addEventListener('focus',()=>{recheck();pollHot();debRescan()});setInterval(()=>{if(['home','recent'].includes(S.sec)&&!S.selMode&&!LS.length)requestRender()},30000);setInterval(refreshStorage,60000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){recheck();debRescan();refreshStorage()}});
